@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  avatar        String?
+  provider      String    @default("email")
+  providerId    String?
+  role          String    @default("USER")
+  magicToken    String?
+  magicExpiry   DateTime?
+  emailOtp      String?
+  emailOtpExpiry DateTime?
+  emailVerified Boolean   @default(false)
+  refreshToken  String?
+  disabled      Boolean   @default(false)
+  downloads     Download[]
+  settings      UserSettings?
+  favorites     Favorite[]
+  apiKey        String?   @unique
+  sessions      Session[]
+  providerSessions ProviderSession[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken String    @unique
+  rememberMe   Boolean   @default(true)
+  ip           String?
+  userAgent    String?
+  deviceLabel  String?
+  expiresAt    DateTime
+  lastUsedAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model ProviderSession {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        String
+  cookieData      String
+  cookieCount     Int       @default(0)
+  expiresAt       DateTime?
+  isValid         Boolean   @default(true)
+  lastValidatedAt DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model UserSettings {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                 String  @default("DARK")
+  language              String  @default("en")
+  downloadFolder        String  @default("./downloads")
+  concurrentDownloads   Int     @default(3)
+  defaultFormat         String  @default("best")
+  defaultQuality        String  @default("best")
+  proxy                 String?
+  cookiesFilePath       String?
+  bandwidthLimit        Int     @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Download {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url             String
+  title           String?
+  thumbnail       String?
+  duration        Float?
+  uploader        String?
+  uploadDate      DateTime?
+  platform        String?
+  mediaType       String   @default("UNKNOWN")
+  status          String   @default("PENDING")
+  format          String?
+  quality         String?
+  formatNote      String?
+  ext             String?
+  fileSize        Int?
+  filePath        String?
+  filename        String?
+  progress        Float    @default(0)
+  speed           Float?
+  eta             Float?
+  errorMsg        String?
+  retryCount      Int      @default(0)
+  metadata        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  title     String?
+  thumbnail String?
+  platform  String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, url])
+}

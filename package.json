@@ -1,0 +1,30 @@
+{
+  "name": "universal-downloader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-ready Universal Downloader Web Application",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:python\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "dev:python": "cd python-service && python -m uvicorn app.main:app --reload --reload-dir app --port 8001",
+    "build": "cd client && npm run build && cd ../server && npm run build",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install && cd ../python-service && pip install -r requirements.txt && npm run setup:spotdl",
+    "setup:spotdl": "cd python-service && if not exist venv-spotdl (python -m venv venv-spotdl) && venv-spotdl\\Scripts\\python -m pip install --upgrade spotdl",
+    "db:generate": "cd database && npx prisma generate",
+    "db:push": "cd database && npx prisma db push",
+    "db:migrate": "cd database && npx prisma migrate dev",
+    "db:seed": "cd database && npx tsx prisma/seed.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "lint": "cd client && npm run lint && cd ../server && npm run lint",
+    "typecheck": "cd client && npm run typecheck && cd ../server && npm run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prisma": "^5.22.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  }
+}
